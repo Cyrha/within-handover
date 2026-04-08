@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handover Within — Cyril Hamel — 15 avril–27 avril 2026</title>
+<style>
+  :root {
+    --bg: #111111;
+    --surface: #1c1c1c;
+    --surface2: #272727;
+    --border: #333333;
+    --text: #f0f0f0;
+    --muted: #888888;
+    --orange: #E8380D;
+    --orange-dim: rgba(232,56,13,0.12);
+    --orange-border: rgba(232,56,13,0.4);
+    --green: #4ade80;
+    --green-bg: #052e16;
+    --yellow: #fbbf24;
+    --yellow-bg: #2d1a00;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    background: #000;
+    border-bottom: 3px solid var(--orange);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .header-logo { display: flex; align-items: center; }
+  .header-divider {
+    width: 1px; height: 32px;
+    background: var(--border);
+  }
+  .header-info { line-height: 1.3; }
+  .header-name { font-size: 14px; font-weight: 700; color: var(--text); letter-spacing: 0.2px; }
+  .header-dates { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .header-dates strong { color: var(--orange); }
+  .header-right { font-size: 11px; color: var(--muted); }
+
+  main { max-width: 900px; margin: 0 auto; padding: 36px 24px; }
+
+  /* SUMMARY */
+  .summary { display: flex; gap: 12px; margin-bottom: 36px; flex-wrap: wrap; }
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 20px;
+    flex: 1; min-width: 120px;
+  }
+  .summary-card .num { font-size: 28px; font-weight: 700; }
+  .summary-card .label { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .summary-card.orange { border-color: var(--orange-border); }
+  .summary-card.orange .num { color: var(--orange); }
+  .summary-card.green .num { color: var(--green); }
+  .summary-card.yellow .num { color: var(--yellow); }
+
+  /* GROUP */
+  .group { margin-bottom: 44px; }
+  .group-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--muted);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .group.active .group-title { color: var(--orange); border-color: var(--orange-border); }
+  .count {
+    background: var(--surface2); border-radius: 20px;
+    padding: 1px 8px; font-size: 10px; color: var(--text);
+  }
+  .cards { display: flex; flex-direction: column; gap: 10px; }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .card.open { border-color: var(--orange); }
+  .card-header {
+    padding: 16px 20px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-header:hover { background: var(--surface2); }
+  .card-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+  .card-title h3 { font-size: 14px; font-weight: 600; }
+  .numero { color: var(--muted); font-size: 11px; font-family: monospace; flex-shrink: 0; }
+  .client {
+    background: var(--orange-dim);
+    border: 1px solid var(--orange-border);
+    border-radius: 3px; padding: 1px 7px;
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--orange); flex-shrink: 0;
+  }
+  .card-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .chevron {
+    color: var(--muted); font-size: 11px;
+    transition: transform 0.2s; display: inline-block;
+  }
+  .card.open .chevron { transform: rotate(90deg); color: var(--orange); }
+  .card-meta {
+    padding: 0 20px 12px;
+    color: var(--muted); font-size: 11px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-block; padding: 2px 9px;
+    border-radius: 3px; font-size: 10px; font-weight: 700; white-space: nowrap;
+  }
+  .badge.green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+  .badge.yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid var(--yellow); }
+
+  /* CARD BODY */
+  .card-body {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 24px 28px;
+  }
+  .card.open .card-body { display: block; }
+  .card.open .card-body { border-top-color: var(--orange-border); }
+
+  /* MARKDOWN */
+  .md-content { line-height: 1.75; }
+  .md-content h2.md-h2 {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--orange);
+    margin: 28px 0 10px; padding-bottom: 6px;
+    border-bottom: 1px solid var(--orange-border);
+  }
+  .md-content h2.md-h2:first-child { margin-top: 0; }
+  .md-content h3.md-h3 {
+    font-size: 13px; font-weight: 600; color: var(--text);
+    margin: 16px 0 6px;
+  }
+  .md-content h4.md-h4 {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    margin: 12px 0 4px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .md-content p { color: var(--text); margin-bottom: 6px; font-size: 13px; }
+  .md-content hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .md-content ul { padding-left: 0; list-style: none; margin-bottom: 8px; }
+  .md-content li { padding: 3px 0; font-size: 13px; }
+  .md-content li.task {
+    display: flex; gap: 10px; align-items: baseline;
+    cursor: pointer; padding: 5px 0;
+    border-radius: 4px;
+    transition: background 0.1s;
+  }
+  .md-content li.task:hover { background: var(--surface2); padding-left: 4px; }
+  .md-content li.task .cb {
+    flex-shrink: 0; width: 16px; height: 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; margin-top: 2px;
+    transition: all 0.15s;
+  }
+  .md-content li.todo .cb { border-color: var(--orange); }
+  .md-content li.todo:hover .cb { background: var(--orange-dim); }
+  .md-content li.done .cb {
+    background: var(--muted); border-color: var(--muted);
+    color: var(--bg);
+  }
+  .md-content li.done .cb::after { content: "✓"; }
+  .md-content li.done > span + * { color: var(--muted); text-decoration: line-through; }
+  .md-content li.done { color: var(--muted); }
+  .md-content a { color: var(--orange); text-decoration: none; }
+  .md-content a:hover { text-decoration: underline; }
+  .md-content code {
+    background: var(--surface2); border-radius: 3px;
+    padding: 1px 5px; font-size: 12px; font-family: monospace;
+  }
+  .md-content blockquote {
+    border-left: 3px solid var(--orange);
+    padding: 6px 12px; margin: 8px 0;
+    color: var(--muted); font-size: 13px;
+  }
+  .md-content .callout {
+    background: var(--orange-dim); border-radius: 6px;
+    padding: 10px 14px; margin: 8px 0;
+    border-left: 3px solid var(--orange);
+    font-size: 13px;
+  }
+  .empty { color: var(--muted); font-style: italic; font-size: 13px; }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 11px;
+    padding: 32px 0 16px; border-top: 1px solid var(--border); margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="header-logo"><img src="data:image/png;base64,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" height="44" alt="Within" style="display:block;"></div>
+    <div class="header-divider"></div>
+    <div class="header-info">
+      <div class="header-name">Cyril Hamel</div>
+      <div class="header-dates">Handover · <strong>15 avril – 27 avril 2026</strong></div>
+    </div>
+  </div>
+  <div class="header-right">Généré le 08/04/2026 à 17:22</div>
+</header>
+<main>
+  <div class="summary">
+    <div class="summary-card orange">
+      <div class="num">6</div>
+      <div class="label">Projets actifs</div>
+    </div>
+    <div class="summary-card green">
+      <div class="num">6</div>
+      <div class="label">En cours</div>
+    </div>
+    <div class="summary-card yellow">
+      <div class="num">0</div>
+      <div class="label">En attente</div>
+    </div>
+  </div>
+
+  
+        <section class="group active">
+            <h2 class="group-title">En cours <span class="count">6</span></h2>
+            <div class="cards">
+    <div class="card" id="proj-25097">
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-title">
+                <span class="numero">25097</span>
+                <span class="client">MIRUM</span>
+                <h3>7 ITWS</h3>
+            </div>
+            <div class="card-right">
+                <span class="badge green">🟢 En cours</span>
+                <span class="chevron">▸</span>
+            </div>
+        </div>
+        <div class="card-meta">màj 08/04/2026</div>
+        <div class="card-body">
+            <div class="md-content"><hr>
+<h2 class="md-h2">✅ TO DO</h2>
+<ul class="task-list">
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Sortir les transcripts et les envoyer. ✅ 2026-04-08</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Ajouter les titres et synthés officiels sur tous les films</li>
+</ul>
+<hr>
+<h2 class="md-h2">📝 BRIEF</h2>
+<p>ITWS MIRUM</p>
+<hr>
+<h2 class="md-h2">💬 SUIVI & NOTES</h2>
+<p>Retours client reçu très tardivement le 7 avril 2026</p>
+<hr>
+<h2 class="md-h2">🗂 DRIVE & RÉFÉRENCES</h2></div>
+        </div>
+    </div>
+
+    <div class="card" id="proj-25135">
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-title">
+                <span class="numero">25135</span>
+                <span class="client">SAEMES</span>
+                <h3>RAPPORT ANNUEL</h3>
+            </div>
+            <div class="card-right">
+                <span class="badge green">🟢 En cours</span>
+                <span class="chevron">▸</span>
+            </div>
+        </div>
+        <div class="card-meta">màj 08/04/2026</div>
+        <div class="card-body">
+            <div class="md-content"><h1 class="md-h1">25135 — RAPPORT ANNUEL — SAEMES</h1>
+<blockquote><code>603</code> · 02/04/2026</blockquote>
+<hr>
+<h2 class="md-h2">✅ TO DO</h2>
+<ul class="task-list">
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Master envoyé on attend le retour final ✅ 2026-04-03</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Sortir le MASTER</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Déclinaison en 4:5</li>
+</ul>
+<hr>
+<h2 class="md-h2">📝 BRIEF</h2>
+<p>Film compositing photos + vidéos filmées + plans IA et TYPO  de 5 parkings SAEMES</p>
+<hr>
+<h2 class="md-h2">💬 SUIVI & NOTES</h2>
+<p>Déjà facturé entièrement</p>
+<hr>
+<h2 class="md-h2">🗂 DRIVE & RÉFÉRENCES</h2>
+<p>Pub Renault</p>
+<p>Clip J ZAY</p></div>
+        </div>
+    </div>
+
+    <div class="card" id="proj-26110">
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-title">
+                <span class="numero">26110</span>
+                <span class="client">EQUANS</span>
+                <h3>CEO_BOOST</h3>
+            </div>
+            <div class="card-right">
+                <span class="badge green">🟢 En cours</span>
+                <span class="chevron">▸</span>
+            </div>
+        </div>
+        <div class="card-meta">màj 08/04/2026</div>
+        <div class="card-body">
+            <div class="md-content"><h1 class="md-h1">26110 — CEO_BOOST — EQUANS</h1>
+<blockquote><code>611</code> · 02/04/2026</blockquote>
+<hr>
+<h2 class="md-h2">✅ TO DO</h2>
+<ul class="task-list">
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Les versions engl et espagnoles sont envoyées le 📅 2026-04-02 ✅ 2026-04-02</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Prévoir Handover Alexis en pensant à la méthode IA et retouche humaine. ✅ 2026-04-03</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>envoyées les versions Allemande - Italienne - Neerlandaise ✅ 2026-04-07</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>On attend les retours ou la validation des tous les films.</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Correction de la version espagnol  (amerique du sud) Mickaël: 📅 2026-04-08 V MASTER</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Correction de la version ITalien V MASTER 📅 2026-04-08</li>
+</ul>
+<hr>
+<h2 class="md-h2">📝 BRIEF</h2>
+<p>ITW monocam CEO et Olivier Hérout sur la solution BOOST</p>
+<p>Déclinaisons IA en 5 langues  Esp/ engl / German/ It/ neerl</p>
+<hr>
+<h2 class="md-h2">💬 SUIVI & NOTES</h2></div>
+        </div>
+    </div>
+
+    <div class="card" id="proj-26137">
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-title">
+                <span class="numero">26137</span>
+                <span class="client">EQUANS</span>
+                <h3>BB5ANS</h3>
+            </div>
+            <div class="card-right">
+                <span class="badge green">🟢 En cours</span>
+                <span class="chevron">▸</span>
+            </div>
+        </div>
+        <div class="card-meta">màj 08/04/2026</div>
+        <div class="card-body">
+            <div class="md-content"><h1 class="md-h1">26137 — BB5ANS — EQUANS</h1>
+<blockquote><code>613</code> · 02/04/2026</blockquote>
+<hr>
+<h2 class="md-h2">✅ TO DO</h2>
+<ul class="task-list">
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>V1 à envoyer 📅 2026-04-03 + mail ✅ 2026-04-03</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Attente retour V1 et attente V2 ✅ 2026-04-07</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Retours envoyés à Greg le 🛫 2026-04-07 ✅ 2026-04-07</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>V2 à concevoir et ~~envoyer musique 2~~ à envoyer le 📅 2026-04-08 matin. ✅ 2026-04-08</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Derniers retours et sortir le MASTER avant le 13 avril</li>
+</ul>
+<hr>
+<h2 class="md-h2">📝 BRIEF</h2>
+<p>Motion USA Greg Schwerdfeger</p>
+<hr>
+<h2 class="md-h2">💬 SUIVI & NOTES</h2>
+<hr></div>
+        </div>
+    </div>
+
+    <div class="card" id="proj-26126">
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-title">
+                <span class="numero">26126</span>
+                <span class="client">EQUANS</span>
+                <h3>FONDAMENTAUX</h3>
+            </div>
+            <div class="card-right">
+                <span class="badge green">🟢 En cours</span>
+                <span class="chevron">▸</span>
+            </div>
+        </div>
+        <div class="card-meta">màj 08/04/2026</div>
+        <div class="card-body">
+            <div class="md-content"><h1 class="md-h1">26126— FONDAMENTAUX — EQUANS</h1>
+<blockquote><code>615</code> · 02/04/2026</blockquote>
+<hr>
+<h2 class="md-h2">✅ TO DO</h2>
+<ul class="task-list">
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Devis envoyé; on attend un GO ✅ 2026-04-07</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Prévoir la team de tournage (Célian + Johan  - Fabien ou Haytham -)</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Caler les dates</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Les textes pour prompteur</li>
+</ul>
+<h2 class="md-h2">📝 BRIEF</h2>
+<p>Tournage monocam sur fond vert des membres du COMEX EQUANS</p>
+<p>Prompteur</p>
+<p>Tournages envisagés entre sur 3 jours les 15.16 17 avril à Courbevoie</p>
+<hr>
+<h2 class="md-h2">💬 SUIVI & NOTES</h2>
+<p>Bien caler les fonds verts et les codecs.</p>
+<p>Leur fond vert - ok</p>
+<p>Prompteur et textes a surveiller</p>
+<hr>
+<h2 class="md-h2">🗂 DRIVE & RÉFÉRENCES</h2>
+<p>https://vimeo.com/879335572/2bc10d7081?share=copy&fl=sv&fe=ci</p></div>
+        </div>
+    </div>
+
+    <div class="card" id="proj-26122">
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-title">
+                <span class="numero">26122</span>
+                <span class="client">GENERALI</span>
+                <h3>PARCOURS SINISTRE</h3>
+            </div>
+            <div class="card-right">
+                <span class="badge green">🟢 En cours</span>
+                <span class="chevron">▸</span>
+            </div>
+        </div>
+        <div class="card-meta">màj 08/04/2026</div>
+        <div class="card-body">
+            <div class="md-content"><h1 class="md-h1">26122 — PARCOURS SINISTRE — GENERALI</h1>
+<blockquote><code>616</code> · 02/04/2026</blockquote>
+<hr>
+<h2 class="md-h2">✅ TO DO</h2>
+<ul class="task-list">
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Storyboard envoyé, on attend un GO ✅ 2026-04-07</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Prévoir Mograph : Alexis ✅ 2026-04-07</li>
+<li class="task done" onclick="toggleTask(this)"><span class="cb"></span>Prod lancée le 🛫 2026-04-07 ✅ 2026-04-07</li>
+<li class="task todo" onclick="toggleTask(this)"><span class="cb"></span>Livrer la V1 avec la VO IA</li>
+</ul>
+<h2 class="md-h2">📝 BRIEF</h2>
+<p>Motion sur le parcours sinistre le petit lion.</p>
+<hr>
+<h2 class="md-h2">💬 SUIVI & NOTES</h2>
+<p>Voix off IA temporaire</p>
+<p>Prévoir VO humaine.</p>
+<hr>
+<h2 class="md-h2">🗂 DRIVE & RÉFÉRENCES</h2>
+<p>https://vimeo.com/1105060501/3095d8bd86?share=copy&fl=cl&fe=ci</p></div>
+        </div>
+    </div></div>
+        </section>
+  
+</main>
+<footer>
+  Within · Généré automatiquement depuis Obsidian · 08/04/2026 à 17:22
+</footer>
+<script>
+  function toggleCard(header) {
+    header.closest('.card').classList.toggle('open');
+  }
+  function toggleTask(li) {
+    li.classList.toggle('done');
+    li.classList.toggle('todo');
+  }
+</script>
+</body>
+</html>
